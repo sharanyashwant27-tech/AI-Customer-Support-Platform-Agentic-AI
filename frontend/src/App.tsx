@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8917/api/v1";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 type Citation = {
   source: string;
@@ -72,9 +72,13 @@ export default function App() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/health`)
-      .then((r) => r.json())
-      .then((d) => setHealth(d.status || "ok"))
+    fetch(`${API_BASE}/health`, {
+      headers: { Accept: "application/json" },
+    })
+      .then(async (r) => {
+        const data = await r.json();
+        setHealth(data.status || "ok");
+      })
       .catch(() => setHealth("down"));
   }, []);
 
@@ -193,18 +197,21 @@ export default function App() {
         <div className="flex items-center gap-4 text-sm">
           <span
             className={`inline-flex items-center gap-2 ${
-              health === "ok" ? "text-brand-700" : "text-red-700"
+              health === "ok" || health === "degraded" ? "text-brand-700" : "text-red-700"
             }`}
           >
             <span
               className={`h-2 w-2 rounded-full ${
-                health === "ok" ? "bg-brand-500" : "bg-red-500"
+                health === "ok" || health === "degraded" ? "bg-brand-500" : "bg-red-500"
               }`}
             />
             API {health}
           </span>
-          <a className="text-brand-700 underline" href="http://localhost:8917/docs">
+          <a className="text-brand-700 underline" href="/docs">
             Docs
+          </a>
+          <a className="text-brand-700 underline" href="/console">
+            API
           </a>
         </div>
       </header>

@@ -46,10 +46,11 @@ python run.py
 ```
 
 Open:
-- API root: http://localhost:8917/
+- Customer chat UI: http://localhost:8917/
+- API console: http://localhost:8917/console
 - Swagger docs: http://localhost:8917/docs
 - Health: http://localhost:8917/api/v1/health
-- Metrics: http://localhost:8917/metrics
+- Metrics: http://localhost:8917/metrics/
 
 ### Smoke-test chat
 
@@ -171,11 +172,12 @@ docker compose --profile observability up -d
 
 | URL | Purpose |
 |-----|---------|
-| http://localhost:8917/ | API home |
+| http://localhost:8917/ | **Customer chat UI** (React) |
+| http://localhost:8917/console | API developer console |
 | http://localhost:8917/docs | OpenAPI |
 | http://localhost:8917/api/v1/health | Health |
 | http://localhost:8917/api/v1/advanced | Advanced features |
-| http://localhost:3017/ | React UI (`--profile full`) |
+| http://localhost:3017/ | Standalone frontend container (`--profile full`) |
 
 Details: [docker/README.md](docker/README.md)
 

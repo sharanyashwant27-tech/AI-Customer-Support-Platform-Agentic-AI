@@ -48,7 +48,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: http://localhost:8917/api/v1
+        VITE_API_BASE_URL: /api/v1
     image: aics-frontend:latest
     container_name: aics-frontend
     ports:

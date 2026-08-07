@@ -27,7 +27,15 @@ def test_root_html_for_browsers(client):
     response = client.get("/", headers={"Accept": "text/html"})
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert b"OpenAPI Docs" in response.content
+    # SPA when frontend/dist exists; otherwise API console landing
+    body = response.content
+    assert b"AICS" in body or b"Customer Support" in body or b"Customer Chat UI" in body or b"OpenAPI Docs" in body
+
+
+def test_console_page(client):
+    response = client.get("/console")
+    assert response.status_code == 200
+    assert b"OpenAPI Docs" in response.content or b"Customer Chat UI" in response.content
 
 
 def test_api_indexes(client):

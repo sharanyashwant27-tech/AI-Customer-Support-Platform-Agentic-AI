@@ -7,11 +7,10 @@
 **/.pytest_cache
 **/.mypy_cache
 **/node_modules
-**/dist
+frontend/dist
 **/.env
 **/.env.*
 !**/.env.example
-frontend
 n8n
 k8s
 grafana

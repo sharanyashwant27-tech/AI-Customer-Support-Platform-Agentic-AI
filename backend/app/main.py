@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from prometheus_client import make_asgi_app
 
 from app import __version__
@@ -18,6 +18,7 @@ from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import get_logger, setup_logging
 from app.middleware.request_context import RequestContextMiddleware
 from app.observability.metrics import init_app_info
+from app.web import mount_frontend_assets, resolve_frontend_dist
 
 logger = get_logger(__name__)
 
@@ -108,9 +109,10 @@ def _landing_html(settings) -> str:
   <main>
     <p class="ok">API online · port {settings.port}</p>
     <h1>{name}</h1>
-    <p>Enterprise multi-agent customer support API. Use the docs to explore endpoints, or open the React UI separately.</p>
+    <p>Enterprise multi-agent customer support. Customer chat UI is at the site root when built.</p>
     <div class="links">
-      <a class="btn" href="/docs">OpenAPI Docs</a>
+      <a class="btn" href="/">Customer Chat UI</a>
+      <a class="ghost" href="/docs">OpenAPI Docs</a>
       <a class="ghost" href="/redoc">ReDoc</a>
       <a class="ghost" href="{health}">Health</a>
       <a class="ghost" href="{advanced}">Advanced features</a>
@@ -119,10 +121,10 @@ def _landing_html(settings) -> str:
     <div class="card">
       <strong>Quick links</strong>
       <ul>
-        <li><span class="mono">POST /chat</span> — customer chat</li>
+        <li><span class="mono">/</span> — Customer Support chat (React)</li>
+        <li><span class="mono">POST /chat</span> — customer chat API</li>
         <li><span class="mono">POST /ticket</span> · <span class="mono">GET /orders/{{id}}</span></li>
         <li><span class="mono">{settings.api_prefix}/advanced</span> — SLA, sentiment, voice, fraud</li>
-        <li>UI (Vite): <span class="mono">http://localhost:3000</span> or Docker <span class="mono">:3017</span></li>
       </ul>
     </div>
   </main>
@@ -261,9 +263,23 @@ def create_app() -> FastAPI:
             "chat": f"{settings.api_prefix}/chat/message",
         }
 
+    @application.get("/console", include_in_schema=False)
+    async def api_console() -> HTMLResponse:
+        """Developer API console (not the customer chat UI)."""
+        return HTMLResponse(_landing_html(settings))
+
+    frontend_dist = resolve_frontend_dist()
+    if frontend_dist is not None:
+        mount_frontend_assets(application, frontend_dist)
+        logger.info("frontend_spa_mounted", path=str(frontend_dist))
+
     @application.get("/", response_model=None)
-    async def root(request: Request, format: str | None = None) -> Response:
-        """HTML landing for browsers; JSON (pretty-wrapped in browser) on demand."""
+    async def root(
+        request: Request,
+        format: str | None = None,
+        view: str | None = None,
+    ) -> Response:
+        """Customer chat UI for browsers; JSON for API clients."""
         payload = _root_payload(settings)
         if format in {"json", "raw"}:
             return pretty_json_response(
@@ -272,7 +288,13 @@ def create_app() -> FastAPI:
                 title="API Root JSON",
                 force_raw=(format == "raw"),
             )
-        if format == "html" or accepts_html(request):
+        if view == "api":
+            return HTMLResponse(_landing_html(settings))
+
+        wants_browser = format == "html" or accepts_html(request)
+        if wants_browser and frontend_dist is not None:
+            return FileResponse(frontend_dist / "index.html")
+        if wants_browser:
             return HTMLResponse(_landing_html(settings))
         return JSONResponse(payload)
 
