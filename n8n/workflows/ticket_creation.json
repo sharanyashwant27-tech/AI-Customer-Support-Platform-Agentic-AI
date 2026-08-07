@@ -1,0 +1,63 @@
+{
+  "name": "Ticket Creation Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aics-ticket-created",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "resource": "ticket",
+        "additionalFields": {}
+      },
+      "name": "Create CRM Ticket",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [260, 0],
+      "notes": "POST to internal CRM / tickets API"
+    },
+    {
+      "parameters": {
+        "fromEmail": "support@example.com",
+        "toEmail": "={{$json.customer_email}}",
+        "subject": "Ticket {{$json.ticket_number}} created",
+        "text": "We received your request and will follow up shortly."
+      },
+      "name": "Email Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [520, -80]
+    },
+    {
+      "parameters": {
+        "channel": "#support-alerts",
+        "text": "New ticket {{$json.ticket_number}}: {{$json.subject}}"
+      },
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [520, 80]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Create CRM Ticket", "type": "main", "index": 0}]]
+    },
+    "Create CRM Ticket": {
+      "main": [[
+        {"node": "Email Notification", "type": "main", "index": 0},
+        {"node": "Slack Alert", "type": "main", "index": 0}
+      ]]
+    }
+  },
+  "settings": {"executionOrder": "v1"},
+  "meta": {"templateId": "aics-ticket-creation"}
+}

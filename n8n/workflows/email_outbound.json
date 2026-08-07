@@ -1,0 +1,34 @@
+{
+  "name": "AICS Email Outbound",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aics-email",
+        "responseMode": "onReceived"
+      },
+      "name": "Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "fromEmail": "support@example.com",
+        "toEmail": "={{$json.to || $json.body?.to}}",
+        "subject": "={{$json.subject || $json.body?.subject || 'Support update'}}",
+        "text": "={{$json.body || $json.body?.body || $json.text}}"
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {
+    "Email Webhook": {
+      "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]]
+    }
+  },
+  "meta": { "templateId": "aics-email" }
+}

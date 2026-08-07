@@ -1,0 +1,57 @@
+# AI Customer Support Platform — Backend dependencies
+
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+email-validator==2.2.0
+
+# Settings & validation
+pydantic==2.10.4
+pydantic-settings==2.7.0
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.2.1
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.0
+psycopg2-binary==2.9.10
+
+# Cache & queue
+redis==5.2.1
+aio-pika==9.5.4
+
+# AI / Agents
+langgraph==0.2.60
+langchain-core==0.3.28
+openai==1.58.1
+anthropic==0.42.0
+google-generativeai==0.8.3
+
+# RAG / document parsing
+qdrant-client==1.12.1
+neo4j==5.27.0
+httpx==0.28.1
+tenacity==9.0.0
+pypdf==5.1.0
+python-docx==1.1.2
+beautifulsoup4==4.12.3
+markdown==3.7
+
+# Optional vector backends (install when VECTOR_STORE=pinecone|chroma)
+# pinecone-client
+# chromadb
+
+# Observability
+structlog==24.4.0
+prometheus-client==0.21.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pytest-cov==6.0.0
+httpx==0.28.1

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "eval-001",
+    "input": "Where is my order ORD-1001?",
+    "expected_intent": "order_status",
+    "expected_handoff": false
+  },
+  {
+    "id": "eval-002",
+    "input": "I want to speak to a human agent right now",
+    "expected_intent": "escalation",
+    "expected_handoff": true
+  },
+  {
+    "id": "eval-003",
+    "input": "What is your return policy?",
+    "expected_intent": "knowledge",
+    "expected_handoff": false
+  },
+  {
+    "id": "eval-004",
+    "input": "This product is terrible and I want a refund immediately",
+    "expected_intent": "refund",
+    "expected_handoff": false
+  }
+]

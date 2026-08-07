@@ -1,0 +1,30 @@
+{
+  "name": "WhatsApp Outbound",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "aics-whatsapp"},
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/PHONE_NUMBER_ID/messages",
+        "sendBody": true,
+        "bodyParametersJson": "={{JSON.stringify($json)}}"
+      },
+      "name": "Meta Cloud API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [[{"node": "Meta Cloud API", "type": "main", "index": 0}]]
+    }
+  },
+  "meta": {"templateId": "aics-whatsapp"}
+}

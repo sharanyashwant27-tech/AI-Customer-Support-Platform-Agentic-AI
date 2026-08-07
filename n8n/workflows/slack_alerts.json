@@ -1,0 +1,28 @@
+{
+  "name": "Slack Support Alerts",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "aics-slack"},
+      "name": "Slack Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "channel": "={{$json.channel || '#support'}}",
+        "text": "={{$json.text}}\n_session {{$json.session_id}} · intent {{$json.intent}} · sentiment {{$json.sentiment}}_"
+      },
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {
+    "Slack Webhook": {
+      "main": [[{"node": "Post to Slack", "type": "main", "index": 0}]]
+    }
+  },
+  "meta": {"templateId": "aics-slack"}
+}

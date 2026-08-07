@@ -1,0 +1,43 @@
+{
+  "name": "Escalation Alert Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aics-escalation"
+      },
+      "name": "Escalation Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "channel": "#support-escalations",
+        "text": "Handoff required. Session {{$json.session_id}} intent={{$json.intent}} reasons={{$json.reasons}}"
+      },
+      "name": "Slack Escalation",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [280, -60]
+    },
+    {
+      "parameters": {
+        "message": "AICS Escalation: {{$json.session_id}}"
+      },
+      "name": "Teams Alert",
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [280, 80]
+    }
+  ],
+  "connections": {
+    "Escalation Webhook": {
+      "main": [[
+        {"node": "Slack Escalation", "type": "main", "index": 0},
+        {"node": "Teams Alert", "type": "main", "index": 0}
+      ]]
+    }
+  },
+  "meta": {"templateId": "aics-escalation"}
+}

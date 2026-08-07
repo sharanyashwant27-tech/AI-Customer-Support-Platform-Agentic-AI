@@ -1,0 +1,203 @@
+{
+  "name": "AICS Customer Chat",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aics-customer-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-customer-chat",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "aics-customer-chat"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/intent'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({ message: $json.body?.message || $json.message, session_id: $json.body?.session_id || $json.session_id, customer_id: $json.body?.customer_id || $json.customer_id, email: $json.body?.email || $json.email, channel: $json.body?.channel || 'web', language: $json.body?.language || 'en' })}}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "intent-detection",
+      "name": "Intent Detection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/knowledge'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "knowledge-search",
+      "name": "Knowledge Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/vector'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "vector-search",
+      "name": "Vector Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/llm'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "llm",
+      "name": "LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/crm'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "crm-update",
+      "name": "CRM Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/ticket'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "ticket-creation",
+      "name": "Ticket Creation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1320, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/email'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "email",
+      "name": "Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1540, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/slack'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "slack-notification",
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1760, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.AICS_API_BASE || 'http://host.docker.internal:8917') + '/api/v1/workflows/n8n/steps/response'}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "prepare-response",
+      "name": "Prepare Customer Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1980, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify({ response: $json.response, intent: $json.intent, sentiment: $json.sentiment, ticket: $json.ticket, session_id: $json.session_id, workflow_path: $json.workflow_path, crm_updated: $json.crm_updated })}}"
+      },
+      "id": "customer-response",
+      "name": "Customer Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2200, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Intent Detection", "type": "main", "index": 0 }]]
+    },
+    "Intent Detection": {
+      "main": [[{ "node": "Knowledge Search", "type": "main", "index": 0 }]]
+    },
+    "Knowledge Search": {
+      "main": [[{ "node": "Vector Search", "type": "main", "index": 0 }]]
+    },
+    "Vector Search": {
+      "main": [[{ "node": "LLM", "type": "main", "index": 0 }]]
+    },
+    "LLM": {
+      "main": [[{ "node": "CRM Update", "type": "main", "index": 0 }]]
+    },
+    "CRM Update": {
+      "main": [[{ "node": "Ticket Creation", "type": "main", "index": 0 }]]
+    },
+    "Ticket Creation": {
+      "main": [[{ "node": "Email", "type": "main", "index": 0 }]]
+    },
+    "Email": {
+      "main": [[{ "node": "Slack Notification", "type": "main", "index": 0 }]]
+    },
+    "Slack Notification": {
+      "main": [[{ "node": "Prepare Customer Response", "type": "main", "index": 0 }]]
+    },
+    "Prepare Customer Response": {
+      "main": [[{ "node": "Customer Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "templateId": "aics-customer-chat",
+    "description": "Customer Chat → Webhook → Intent → Knowledge → Vector → LLM → CRM → Ticket → Email → Slack → Customer Response"
+  },
+  "versionId": "1.0.0"
+}

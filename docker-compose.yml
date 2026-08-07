@@ -1,0 +1,195 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: aics-api:latest
+    container_name: aics-api
+    ports:
+      - "8917:8917"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      NEO4J_URI: bolt://neo4j:7687
+      HOST: 0.0.0.0
+      PORT: "8917"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      qdrant:
+        condition: service_started
+      neo4j:
+        condition: service_started
+    volumes:
+      # Dev bind-mount (overrides image code). README stays available from image or host.
+      - ./backend/app:/app/app
+      - ./README.md:/app/README.md:ro
+      - ./docs:/app/docs:ro
+      - ./sample_data:/app/sample_data:ro
+      - ./sample_prompts:/app/sample_prompts:ro
+    networks:
+      - aics-net
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8917/api/v1
+    image: aics-frontend:latest
+    container_name: aics-frontend
+    ports:
+      - "3017:3000"
+    depends_on:
+      - api
+    networks:
+      - aics-net
+    profiles:
+      - full
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: aics-postgres
+    environment:
+      POSTGRES_USER: aics
+      POSTGRES_PASSWORD: aics_secret
+      POSTGRES_DB: aics_db
+    ports:
+      - "25433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aics -d aics_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aics-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: aics-redis
+    ports:
+      - "26379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aics-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: aics-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: aics
+      RABBITMQ_DEFAULT_PASS: aics_secret
+    ports:
+      - "25672:5672"
+      - "25673:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - aics-net
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.5
+    container_name: aics-qdrant
+    ports:
+      - "26333:6333"
+      - "26334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - aics-net
+
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: aics-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/aics_neo4j_secret
+    ports:
+      - "27474:7474"
+      - "27687:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - aics-net
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: aics-n8n
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      WEBHOOK_URL: http://localhost:5678/
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/workflows:ro
+    networks:
+      - aics-net
+    profiles:
+      - full
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: aics-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - aics-net
+    profiles:
+      - observability
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: aics-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: aics_grafana
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - aics-net
+    profiles:
+      - observability
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  qdrant_data:
+  neo4j_data:
+  n8n_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  aics-net:
+    driver: bridge

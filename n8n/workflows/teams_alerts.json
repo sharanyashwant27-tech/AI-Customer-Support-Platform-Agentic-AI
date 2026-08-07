@@ -1,0 +1,27 @@
+{
+  "name": "MS Teams Support Alerts",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "aics-teams"},
+      "name": "Teams Webhook In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "message": "={{$json.text || $json.summary}}"
+      },
+      "name": "Post to Teams",
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {
+    "Teams Webhook In": {
+      "main": [[{"node": "Post to Teams", "type": "main", "index": 0}]]
+    }
+  },
+  "meta": {"templateId": "aics-teams"}
+}

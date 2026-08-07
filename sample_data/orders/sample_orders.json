@@ -1,0 +1,184 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "status": "shipped",
+    "customer_email": "customer@example.com",
+    "items": [
+      {
+        "sku": "SKU-WH-01",
+        "name": "Wireless Headphones Pro",
+        "quantity": 1,
+        "unit_price": 129.99
+      }
+    ],
+    "total": 129.99,
+    "currency": "USD",
+    "placed_at": "2026-07-28T10:00:00Z",
+    "estimated_delivery": "2026-08-03T18:00:00Z",
+    "tracking_number": "1Z999AA10123456784",
+    "shipment": {
+      "carrier": "UPS",
+      "status": "in_transit",
+      "last_scan": "Arrived at San Francisco sorting facility — delayed due to volume surge",
+      "last_scan_at": "2026-08-06T22:10:00Z"
+    },
+    "shipping_address": {
+      "line1": "100 Market St",
+      "city": "San Francisco",
+      "state": "CA",
+      "postal": "94105",
+      "country": "US"
+    }
+  },
+  {
+    "order_id": "ORD-1002",
+    "status": "delivered",
+    "customer_email": "jane.doe@example.com",
+    "items": [
+      {
+        "sku": "SKU-KB-02",
+        "name": "Mechanical Keyboard",
+        "quantity": 1,
+        "unit_price": 89.0
+      },
+      {
+        "sku": "SKU-MS-03",
+        "name": "Ergonomic Mouse",
+        "quantity": 1,
+        "unit_price": 49.0
+      }
+    ],
+    "total": 138.0,
+    "currency": "USD",
+    "placed_at": "2026-07-20T14:30:00Z",
+    "estimated_delivery": "2026-07-25T18:00:00Z",
+    "tracking_number": "1Z999AA10987654321",
+    "shipment": {
+      "carrier": "UPS",
+      "status": "delivered",
+      "last_scan": "Delivered — front door",
+      "last_scan_at": "2026-07-24T16:02:00Z"
+    },
+    "shipping_address": {
+      "city": "Austin",
+      "state": "TX",
+      "country": "US"
+    }
+  },
+  {
+    "order_id": "ORD-1003",
+    "status": "processing",
+    "customer_email": "alex@example.com",
+    "items": [
+      {
+        "sku": "SKU-CH-04",
+        "name": "USB-C Hub",
+        "quantity": 2,
+        "unit_price": 39.99
+      }
+    ],
+    "total": 79.98,
+    "currency": "USD",
+    "placed_at": "2026-08-06T09:15:00Z",
+    "estimated_delivery": "2026-08-12T18:00:00Z",
+    "tracking_number": null,
+    "shipment": {
+      "carrier": null,
+      "status": "preparing",
+      "last_scan": null,
+      "last_scan_at": null
+    },
+    "shipping_address": {
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US"
+    }
+  },
+  {
+    "order_id": "ORD-1004",
+    "status": "shipped",
+    "customer_email": "customer@example.com",
+    "items": [
+      {
+        "sku": "SKU-CASE-05",
+        "name": "Laptop Sleeve",
+        "quantity": 1,
+        "unit_price": 29.99
+      }
+    ],
+    "total": 29.99,
+    "currency": "USD",
+    "placed_at": "2026-07-20T09:00:00Z",
+    "estimated_delivery": "2026-07-27T18:00:00Z",
+    "tracking_number": "1Z999AA15555555555",
+    "shipment": {
+      "carrier": "FedEx",
+      "status": "exception",
+      "last_scan": "Delivery exception — address unreachable, returning to hub",
+      "last_scan_at": "2026-08-01T11:40:00Z"
+    },
+    "shipping_address": {
+      "city": "Chicago",
+      "state": "IL",
+      "country": "US"
+    }
+  },
+  {
+    "order_id": "ORD-1005",
+    "status": "returned",
+    "customer_email": "returns@example.com",
+    "items": [
+      {
+        "sku": "SKU-WH-01",
+        "name": "Wireless Headphones Pro",
+        "quantity": 1,
+        "unit_price": 129.99
+      }
+    ],
+    "total": 129.99,
+    "currency": "USD",
+    "placed_at": "2026-07-01T10:00:00Z",
+    "estimated_delivery": "2026-07-07T18:00:00Z",
+    "tracking_number": "1Z999AA16666666666",
+    "shipment": {
+      "carrier": "UPS",
+      "status": "returned",
+      "last_scan": "Return received at warehouse — inspection pending",
+      "last_scan_at": "2026-08-01T09:00:00Z"
+    },
+    "shipping_address": {
+      "city": "Denver",
+      "state": "CO",
+      "country": "US"
+    }
+  },
+  {
+    "order_id": "ORD-1006",
+    "status": "cancelled",
+    "customer_email": "cancel@example.com",
+    "items": [
+      {
+        "sku": "SKU-MS-03",
+        "name": "Ergonomic Mouse",
+        "quantity": 1,
+        "unit_price": 49.0
+      }
+    ],
+    "total": 49.0,
+    "currency": "USD",
+    "placed_at": "2026-08-05T12:00:00Z",
+    "estimated_delivery": "2026-08-12T18:00:00Z",
+    "tracking_number": null,
+    "shipment": {
+      "carrier": null,
+      "status": "cancelled",
+      "last_scan": "Order cancelled before fulfillment",
+      "last_scan_at": "2026-08-05T13:00:00Z"
+    },
+    "shipping_address": {
+      "city": "Boston",
+      "state": "MA",
+      "country": "US"
+    }
+  }
+]

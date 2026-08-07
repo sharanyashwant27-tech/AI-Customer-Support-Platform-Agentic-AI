@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "name": "few_shot_billing",
+  "description": "Prompt tuning — payment failed few-shot playbook",
+  "template": "Few-shot billing playbook for payment failures.",
+  "variables": [],
+  "few_shot": [
+    {
+      "id": "payment_failed",
+      "user": "My payment failed.",
+      "detect": "Billing",
+      "retrieve": "Payment Policy",
+      "flow": [
+        "Detect Billing",
+        "Retrieve Payment Policy",
+        "Answer",
+        "Offer retry",
+        "Create ticket if needed"
+      ],
+      "assistant": "I'm sorry your payment didn't go through. According to our Payment Policy, failed attempts are not charged. Please retry the payment; if it fails again I can create a billing ticket and send a secure payment link.\n\nSummary: Customer reported a failed payment.\nNext best action: Retry payment, or create a billing ticket."
+    }
+  ],
+  "guardrails": {
+    "intent": "billing",
+    "create_ticket_if_needed": true,
+    "offer_retry": true
+  }
+}

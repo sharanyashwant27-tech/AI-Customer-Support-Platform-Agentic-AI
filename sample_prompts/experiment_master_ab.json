@@ -1,0 +1,8 @@
+{
+  "master_system": {
+    "name": "master_system_ab",
+    "variants": ["master_system", "master_system_b"],
+    "weights": [0.5, 0.5],
+    "description": "A/B test concise copilot tone vs standard master system prompt"
+  }
+}

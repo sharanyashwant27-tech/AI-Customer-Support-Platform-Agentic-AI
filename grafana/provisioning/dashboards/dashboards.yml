@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+  - name: AICS
+    orgId: 1
+    folder: AICS
+    type: file
+    disableDeletion: false
+    options:
+      path: /var/lib/grafana/dashboards

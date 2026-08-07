@@ -1,0 +1,50 @@
+{
+  "title": "AICS Platform Overview",
+  "uid": "aics-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Rate",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [
+        {
+          "expr": "sum(rate(aics_http_requests_total[5m])) by (status_code)",
+          "legendFormat": "{{status_code}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Agent Invocations",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "targets": [
+        {
+          "expr": "sum(rate(aics_agent_invocations_total[5m])) by (agent_name)",
+          "legendFormat": "{{agent_name}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Chat Messages",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [
+        {
+          "expr": "sum(rate(aics_chat_messages_total[5m])) by (intent)",
+          "legendFormat": "{{intent}}"
+        }
+      ]
+    },
+    {
+      "type": "gauge",
+      "title": "Active Sessions",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "targets": [
+        {"expr": "aics_active_sessions"}
+      ]
+    }
+  ]
+}

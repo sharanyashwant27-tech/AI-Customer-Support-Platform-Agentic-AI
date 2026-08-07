@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "name": "intent_classifier",
+  "template": "Classify the customer message into one intent: order_status, refund, ticket, knowledge, account, recommendation, escalation, general.\nReturn JSON: {\"intent\": \"...\", \"confidence\": 0.0-1.0}.\nMessage: {{message}}",
+  "variables": ["message"],
+  "few_shot": [
+    {"user": "Track my package", "assistant": "{\"intent\": \"order_status\", \"confidence\": 0.91}"},
+    {"user": "Talk to a person", "assistant": "{\"intent\": \"escalation\", \"confidence\": 0.95}"}
+  ]
+}
