@@ -9,7 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_current_user_optional, get_db_optional
+from app.api.deps import get_current_user_optional, get_db_optional
 from app.db.models.ticket import TicketStatus
 from app.db.models.user import User
 from app.db.repositories.entities import customer_repo, ticket_repo
@@ -104,7 +104,13 @@ async def get_ticket(
 ) -> TicketResponse:
     if db is not None:
         try:
-            ticket = await ticket_repo.get(db, uuid.UUID(ticket_id))
+            ticket = None
+            try:
+                ticket = await ticket_repo.get(db, uuid.UUID(ticket_id))
+            except ValueError:
+                ticket = None
+            if ticket is None:
+                ticket = await ticket_repo.get_by_number(db, ticket_id)
             if ticket:
                 return _to_response(ticket)
         except Exception:
@@ -112,6 +118,26 @@ async def get_ticket(
     fallback = _FALLBACK.get(ticket_id)
     if fallback:
         return fallback
+    for item in _FALLBACK.values():
+        if item.ticket_number.upper() == ticket_id.upper():
+            return item
+    raise HTTPException(status_code=404, detail="Ticket not found")
+
+
+@router.post("/{ticket_id}/close", response_model=TicketResponse)
+async def close_ticket_endpoint(
+    ticket_id: str,
+    user: Annotated[User | None, Depends(get_current_user_optional)],
+    db: Annotated[AsyncSession | None, Depends(get_db_optional)],
+    resolve: bool = False,
+) -> TicketResponse:
+    """Close a ticket when the issue is resolved (by UUID or TKT- number)."""
+    from app.services.ticket_service import close_ticket
+
+    status_value = TicketStatus.RESOLVED if resolve else TicketStatus.CLOSED
+    closed = await close_ticket(ticket_id, db=db, status=status_value)
+    if closed:
+        return closed
     raise HTTPException(status_code=404, detail="Ticket not found")
 
 
@@ -119,12 +145,18 @@ async def get_ticket(
 async def update_ticket(
     ticket_id: str,
     payload: TicketUpdate,
-    _: Annotated[User, Depends(get_current_user)],
+    user: Annotated[User | None, Depends(get_current_user_optional)],
     db: Annotated[AsyncSession | None, Depends(get_db_optional)],
 ) -> TicketResponse:
     if db is not None:
         try:
-            ticket = await ticket_repo.get(db, uuid.UUID(ticket_id))
+            ticket = None
+            try:
+                ticket = await ticket_repo.get(db, uuid.UUID(ticket_id))
+            except ValueError:
+                ticket = None
+            if ticket is None:
+                ticket = await ticket_repo.get_by_number(db, ticket_id)
             if ticket:
                 updated = await ticket_repo.update(
                     db, ticket, **payload.model_dump(exclude_unset=True)
@@ -133,6 +165,12 @@ async def update_ticket(
         except Exception:
             pass
     fallback = _FALLBACK.get(ticket_id)
+    if not fallback:
+        for key, item in _FALLBACK.items():
+            if item.ticket_number.upper() == ticket_id.upper():
+                fallback = item
+                ticket_id = key
+                break
     if not fallback:
         raise HTTPException(status_code=404, detail="Ticket not found")
     data = fallback.model_dump()

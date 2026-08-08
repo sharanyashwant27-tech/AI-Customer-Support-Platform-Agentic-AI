@@ -18,6 +18,7 @@ from app.i18n.language import language_service
 from app.integrations.hub import integration_hub
 from app.observability.metrics import CHAT_MESSAGES_TOTAL
 from app.schemas.chat import ChatMessageRequest, ChatMessageResponse, Citation
+from app.services.ticket_service import extract_ticket_draft, persist_agent_ticket_draft
 
 logger = get_logger(__name__)
 
@@ -94,6 +95,31 @@ class SupportService:
             }
         )
 
+        # Persist Ticket Agent / playbook drafts into PostgreSQL
+        draft = extract_ticket_draft(result.get("agent_results") or {})
+        if draft:
+            try:
+                saved = await persist_agent_ticket_draft(
+                    draft,
+                    db=db,
+                    customer_id=message.customer_id,
+                    customer_email=message.customer_email,
+                )
+                if saved:
+                    result_meta["ticket"] = {
+                        "id": str(saved.id),
+                        "ticket_number": saved.ticket_number,
+                        "subject": saved.subject,
+                        "status": saved.status.value,
+                        "priority": saved.priority.value,
+                        "category": saved.category,
+                    }
+                    # Prefer the persisted number in the reply if agent used a draft id
+                    if saved.ticket_number and saved.ticket_number not in reply_en:
+                        result_meta["ticket_created"] = True
+            except Exception as exc:
+                logger.warning("ticket_persist_from_chat_failed", error=str(exc))
+
         conversation_id = None
         message_id = None
         if db is not None:
@@ -142,6 +168,7 @@ class SupportService:
                 message_id = assistant.id
                 result_meta["conversation_id"] = str(conversation_id)
                 result_meta["message_id"] = str(message_id)
+                await db.commit()
             except Exception as exc:
                 logger.warning("channel_persist_failed", error=str(exc))
 

@@ -3,6 +3,8 @@
 POST /chat
 POST /ticket
 GET  /ticket/{id}
+POST /ticket/{id}/close
+PATCH /ticket/{id}
 GET  /orders/{id}
 POST /upload
 POST /knowledge/index
@@ -35,7 +37,7 @@ from app.schemas.common import (
     KnowledgeIngestResponse,
     OrderResponse,
 )
-from app.schemas.ticket import TicketCreate, TicketResponse
+from app.schemas.ticket import TicketCreate, TicketResponse, TicketUpdate
 from app.services.chat_service import chat_service
 
 router = APIRouter(tags=["REST API"])
@@ -79,23 +81,30 @@ async def get_ticket(
     ticket_id: str,
     db: Annotated[AsyncSession | None, Depends(get_db_optional)],
 ) -> TicketResponse:
-    """Fetch a ticket by id or ticket number."""
-    # Prefer UUID lookup; fall back to ticket_number scan via list
-    try:
-        return await tickets_ep.get_ticket(ticket_id, db)
-    except HTTPException:
-        if db is not None:
-            from sqlalchemy import select
+    """Fetch a ticket by UUID or ticket number (TKT-…)."""
+    return await tickets_ep.get_ticket(ticket_id, db)
 
-            from app.db.models.ticket import Ticket
 
-            result = await db.execute(
-                select(Ticket).where(Ticket.ticket_number == ticket_id.upper())
-            )
-            ticket = result.scalar_one_or_none()
-            if ticket:
-                return tickets_ep._to_response(ticket)
-        raise
+@router.post("/ticket/{ticket_id}/close", response_model=TicketResponse)
+async def close_ticket(
+    ticket_id: str,
+    user: Annotated[User | None, Depends(get_current_user_optional)],
+    db: Annotated[AsyncSession | None, Depends(get_db_optional)],
+    resolve: bool = False,
+) -> TicketResponse:
+    """Close a resolved ticket by UUID or TKT- number."""
+    return await tickets_ep.close_ticket_endpoint(ticket_id, user, db, resolve=resolve)
+
+
+@router.patch("/ticket/{ticket_id}", response_model=TicketResponse)
+async def patch_ticket(
+    ticket_id: str,
+    payload: TicketUpdate,
+    user: Annotated[User | None, Depends(get_current_user_optional)],
+    db: Annotated[AsyncSession | None, Depends(get_db_optional)],
+) -> TicketResponse:
+    """Update ticket fields (status, priority, …)."""
+    return await tickets_ep.update_ticket(ticket_id, payload, user, db)
 
 
 # ---------------------------------------------------------------------------

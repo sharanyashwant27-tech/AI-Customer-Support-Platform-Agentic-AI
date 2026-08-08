@@ -44,6 +44,8 @@ const SUGGESTIONS = [
   "Where is my order ORD-1001?",
   "What is your return policy?",
   "I want a refund for ORD-1002",
+  "Please create a support ticket for my delayed package",
+  "Please close ticket TKT-XXXXXXXX — issue resolved",
   "I want to speak to a human agent",
   "Necesito un reembolso para ORD-1001",
 ];
@@ -125,6 +127,22 @@ export default function App() {
       };
       setHistory((h) => [...h, data]);
       setSessionId(data.session_id);
+      const created = raw.metadata?.ticket as Ticket | undefined;
+      if (created?.ticket_number) {
+        setTickets((t) => {
+          if (t.some((x) => x.ticket_number === created.ticket_number)) return t;
+          return [
+            {
+              id: String((created as { id?: string }).id || created.ticket_number),
+              ticket_number: created.ticket_number,
+              subject: (created as { subject?: string }).subject || "Support ticket",
+              status: (created as { status?: string }).status || "open",
+              priority: (created as { priority?: string }).priority || "medium",
+            },
+            ...t,
+          ];
+        });
+      }
       setMessage("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Request failed");
@@ -134,13 +152,24 @@ export default function App() {
   }
 
   async function createTicket() {
+    setError(null);
+    const subject =
+      message.trim().split("\n")[0].slice(0, 120) || "Need help from chat";
+    const description =
+      message.trim() ||
+      history.at(-1)?.reply ||
+      "Customer requested a support ticket from the chat UI.";
     const res = await fetch(`${API_BASE}/tickets`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
       body: JSON.stringify({
-        subject: "Need help from chat",
-        description: history.at(-1)?.reply || message || "Customer requested ticket",
+        subject,
+        description,
         priority: "medium",
+        category: "general",
       }),
     });
     if (!res.ok) {
@@ -149,6 +178,45 @@ export default function App() {
     }
     const ticket: Ticket = await res.json();
     setTickets((t) => [ticket, ...t]);
+    setHistory((h) => [
+      ...h,
+      {
+        session_id: sessionId || "local",
+        reply: `Support ticket **${ticket.ticket_number}** created (${ticket.status}, ${ticket.priority}).`,
+        intent: "ticket",
+        sentiment: "neutral",
+      },
+    ]);
+  }
+
+  async function closeTicket(ticket: Ticket, resolve = true) {
+    setError(null);
+    const res = await fetch(
+      `${API_BASE}/tickets/${encodeURIComponent(ticket.ticket_number || ticket.id)}/close?resolve=${resolve}`,
+      {
+        method: "POST",
+        headers: { Accept: "application/json" },
+      }
+    );
+    if (!res.ok) {
+      setError(`Ticket close failed (${res.status})`);
+      return;
+    }
+    const updated: Ticket = await res.json();
+    setTickets((list) =>
+      list.map((t) =>
+        t.ticket_number === updated.ticket_number || t.id === updated.id ? updated : t
+      )
+    );
+    setHistory((h) => [
+      ...h,
+      {
+        session_id: sessionId || "local",
+        reply: `Ticket **${updated.ticket_number}** marked **${updated.status}**.`,
+        intent: "ticket",
+        sentiment: "happy",
+      },
+    ]);
   }
 
   async function lookupOrder() {
@@ -371,9 +439,23 @@ export default function App() {
               <h2 className="font-display text-xl mb-2">Tickets</h2>
               <ul className="space-y-2 text-sm">
                 {tickets.map((t) => (
-                  <li key={t.id}>
-                    {t.ticket_number} — {t.subject}{" "}
-                    <span className="text-ink/50">({t.status})</span>
+                  <li
+                    key={t.id}
+                    className="flex items-start justify-between gap-2 border-b border-ink/5 pb-2 last:border-0"
+                  >
+                    <div>
+                      {t.ticket_number} — {t.subject}{" "}
+                      <span className="text-ink/50">({t.status})</span>
+                    </div>
+                    {t.status !== "closed" && t.status !== "resolved" && (
+                      <button
+                        type="button"
+                        onClick={() => closeTicket(t, true)}
+                        className="shrink-0 text-xs text-brand-700 underline"
+                      >
+                        Mark resolved
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

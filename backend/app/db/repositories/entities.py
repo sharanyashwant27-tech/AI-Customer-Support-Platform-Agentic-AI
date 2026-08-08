@@ -97,6 +97,12 @@ class TicketRepository:
         result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
         return result.scalar_one_or_none()
 
+    async def get_by_number(self, db: AsyncSession, ticket_number: str) -> Ticket | None:
+        result = await db.execute(
+            select(Ticket).where(Ticket.ticket_number == ticket_number.upper())
+        )
+        return result.scalar_one_or_none()
+
     async def update(
         self, db: AsyncSession, ticket: Ticket, **fields: object
     ) -> Ticket:

@@ -179,7 +179,19 @@ def needs_ticket(state: AgentState) -> bool:
     if sentiment in {"angry", "frustrated", "urgent"}:
         return True
     msg = (state.get("user_message") or "").lower()
-    return any(w in msg for w in ("ticket", "complaint", "open a case", "file a"))
+    return any(
+        w in msg
+        for w in (
+            "ticket",
+            "complaint",
+            "open a case",
+            "file a",
+            "close ticket",
+            "resolved",
+            "mark as resolved",
+            "close my ticket",
+        )
+    )
 
 
 def needs_human(state: AgentState) -> bool:
